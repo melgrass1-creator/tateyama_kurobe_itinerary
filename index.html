@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>黑部立山六天五夜 · 自駕完全攻略</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  :root {
+    --ink: #1c1c2e;
+    --mist: #f0f4f8;
+    --snow: #f8f9fb;
+    --sage: #5a8f6a;
+    --alpine: #2d6080;
+    --gold: #c49a2e;
+    --stone: #7a7570;
+    --warm: #f5f0e8;
+    --red: #c0392b;
+    --transport-bg: #e8f4fd;
+    --transport-border: #2d6080;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Noto Serif TC',serif; background:var(--snow); color:var(--ink); }
+
+  /* HEADER */
+  .page-header {
+    background: linear-gradient(135deg, #0d1b2a 0%, #1a3a50 50%, #2a5040 100%);
+    color: white;
+    padding: 3rem 1.5rem 2.5rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .page-header::before {
+    content:'';
+    position:absolute;
+    inset:0;
+    background: url('https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=1400&q=80') center/cover;
+    opacity:0.18;
+  }
+  .page-header > * { position:relative; z-index:1; }
+  .page-header .eyebrow {
+    font-family:'Cormorant Garamond',serif;
+    font-size:0.85rem;
+    letter-spacing:0.3em;
+    color:rgba(201,168,76,0.9);
+    text-transform:uppercase;
+    margin-bottom:0.8rem;
+  }
+  .page-header h1 {
+    font-size: clamp(1.6rem, 5vw, 2.8rem);
+    font-weight:700;
+    line-height:1.2;
+  }
+  .page-header h1 span { color: #c49a2e; }
+  .page-header .subtitle {
+    margin-top:0.8rem;
+    font-size:0.9rem;
+    color:rgba(255,255,255,0.6);
+    letter-spacing:0.12em;
+  }
+
+  /* LEGEND */
+  .legend {
+    background:white;
+    border-bottom:1px solid #e0e0e0;
+    padding:1rem 1.5rem;
+    display:flex;
+    gap:1.5rem;
+    flex-wrap:wrap;
+    justify-content:center;
+    font-size:0.78rem;
+    color:var(--stone);
+  }
+  .legend-item { display:flex; align-items:center; gap:0.4rem; }
+  .leg-dot { width:10px; height:10px; border-radius:50%; display:inline-block; }
+
+  /* MAIN */
+  .main { max-width:900px; margin:0 auto; padding:2rem 1rem 4rem; }
+
+  /* DAY BLOCK */
+  .day-block {
+    margin-bottom:3rem;
+    border-radius:0.8rem;
+    overflow:hidden;
+    box-shadow:0 2px 16px rgba(0,0,0,0.10);
+  }
+  .day-header {
+    background: var(--ink);
+    color:white;
+    padding:1rem 1.5rem;
+    display:flex;
+    align-items:center;
+    gap:1rem;
+  }
+  .day-num-badge {
+    font-family:'Cormorant Garamond',serif;
+    font-size:1.8rem;
+    font-weight:300;
+    color:var(--gold);
+    line-height:1;
+    min-width:2.2rem;
+  }
+  .day-info { flex:1; }
+  .day-title-text { font-size:1.05rem; font-weight:600; }
+  .day-route-text { font-size:0.78rem; color:rgba(255,255,255,0.55); margin-top:0.2rem; letter-spacing:0.05em; }
+  .day-total-time {
+    background:rgba(201,168,76,0.25);
+    border:1px solid rgba(201,168,76,0.5);
+    border-radius:1rem;
+    padding:0.3rem 0.8rem;
+    font-size:0.75rem;
+    color:var(--gold);
+    white-space:nowrap;
+  }
+
+  /* ROWS */
+  .row-table { width:100%; border-collapse:collapse; background:white; }
+  .row-table tr:not(:last-child) td { border-bottom:1px solid #f0f0f0; }
+
+  /* TRANSPORT ROW */
+  .transport-row td {
+    background: #eaf4fc;
+    padding:0.6rem 1rem;
+    vertical-align:middle;
+  }
+  .transport-inner {
+    display:flex;
+    align-items:center;
+    gap:0.6rem;
+    flex-wrap:wrap;
+  }
+  .transport-icon { font-size:1.1rem; flex-shrink:0; }
+  .transport-label {
+    font-size:0.82rem;
+    color:var(--alpine);
+    font-weight:600;
+  }
+  .transport-detail {
+    font-size:0.78rem;
+    color:var(--stone);
+  }
+  .transport-chips {
+    display:flex;
+    gap:0.4rem;
+    flex-wrap:wrap;
+    margin-left:auto;
+  }
+  .chip {
+    font-size:0.72rem;
+    padding:0.18rem 0.55rem;
+    border-radius:1rem;
+    white-space:nowrap;
+    font-weight:600;
+  }
+  .chip-time { background:#d5eaf7; color:#1a5c85; }
+  .chip-dist { background:#e8f5e9; color:#2e6b40; }
+  .chip-fare { background:#fff3e0; color:#9a5d00; }
+  .chip-warn { background:#fff0f0; color:#b03030; }
+
+  /* PLACE ROW */
+  .place-row td {
+    padding:0.85rem 1rem 0.85rem 1.5rem;
+    vertical-align:top;
+  }
+  .place-inner { display:flex; gap:0.8rem; align-items:flex-start; }
+  .place-bullet {
+    width:8px; height:8px; border-radius:50%;
+    background:var(--sage);
+    flex-shrink:0;
+    margin-top:0.45rem;
+  }
+  .place-content { flex:1; }
+  .place-name { font-size:0.95rem; font-weight:600; color:var(--ink); }
+  .place-sub { font-size:0.8rem; color:var(--stone); margin-top:0.2rem; line-height:1.6; }
+  .place-tags { display:flex; gap:0.35rem; flex-wrap:wrap; margin-top:0.4rem; }
+  .ptag {
+    font-size:0.7rem;
+    padding:0.12rem 0.5rem;
+    border-radius:0.25rem;
+    font-weight:600;
+  }
+  .ptag-n { background:rgba(90,143,106,0.12); color:var(--sage); }
+  .ptag-f { background:rgba(196,154,46,0.15); color:#8a6800; }
+  .ptag-h { background:rgba(45,96,128,0.12); color:var(--alpine); }
+  .ptag-s { background:rgba(192,57,43,0.1); color:var(--red); }
+  .ptag-w { background:rgba(120,100,80,0.1); color:var(--stone); }
+  .ptag-warn { background:rgba(192,57,43,0.1); color:var(--red); }
+
+  /* NOTE ROW */
+  .note-row td {
+    background:#fdfaf5;
+    padding:0.7rem 1.5rem;
+    border-left:3px solid var(--gold);
+    font-size:0.8rem;
+    color:#6a5a38;
+    line-height:1.7;
+  }
+
+  /* SECTION DIVIDER */
+  .section-label {
+    font-size:0.7rem;
+    letter-spacing:0.2em;
+    color:var(--stone);
+    text-transform:uppercase;
+    padding:0.5rem 1rem 0.3rem 1.5rem;
+    background:white;
+    border-bottom:1px solid #f0f0f0;
+  }
+
+  /* ALPEN TABLE */
+  .alpen-table { width:100%; background:white; }
+  .alpen-table .seg-row td {
+    padding:0.6rem 1rem;
+    border-bottom:1px solid #f5f5f5;
+    vertical-align:middle;
+    font-size:0.82rem;
+  }
+  .seg-icon { width:36px; text-align:center; font-size:1.1rem; }
+  .seg-route { color:var(--ink); font-weight:600; }
+  .seg-tool { color:var(--stone); font-size:0.75rem; }
+  .seg-time { text-align:right; white-space:nowrap; }
+  .seg-badge {
+    display:inline-block;
+    background:#d5eaf7;
+    color:#1a5c85;
+    border-radius:0.3rem;
+    padding:0.1rem 0.5rem;
+    font-size:0.72rem;
+    font-weight:600;
+  }
+  .seg-total-row td {
+    background:#e8f4fc;
+    padding:0.7rem 1rem;
+    font-size:0.82rem;
+    font-weight:700;
+    color:var(--alpine);
+  }
+
+  /* ===== SPOT CARDS (NEW) ===== */
+  .spot-cards {
+    background: white;
+    padding: 1.2rem 1.5rem;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .spot-cards-title {
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    color: var(--stone);
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+  .spot-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1rem;
+  }
+  .spot-card {
+    border-radius: 0.5rem;
+    overflow: hidden;
+    border: 1px solid #e8e8e8;
+    transition: box-shadow 0.2s;
+  }
+  .spot-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+  .spot-card-img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    display: block;
+    background: #ddd;
+  }
+  .spot-card-body {
+    padding: 0.75rem 0.9rem;
+  }
+  .spot-card-name {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 0.3rem;
+  }
+  .spot-card-desc {
+    font-size: 0.75rem;
+    color: var(--stone);
+    line-height: 1.65;
+  }
+  .spot-card-tip {
+    margin-top: 0.5rem;
+    font-size: 0.72rem;
+    color: var(--alpine);
+    font-weight: 600;
+    background: rgba(45,96,128,0.08);
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+  }
+
+  /* ===== DAY MAP (NEW) ===== */
+  .day-map-section {
+    background: white;
+    border-top: 2px solid #f0f0f0;
+  }
+  .day-map-header {
+    padding: 0.7rem 1.5rem 0.5rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    color: var(--stone);
+    text-transform: uppercase;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .day-map-container {
+    height: 320px;
+    width: 100%;
+  }
+  .day-map-container .leaflet-container {
+    height: 100%;
+    width: 100%;
+  }
+
+  /* SUMMARY BOX */
+  .summary-box {
+    background: linear-gradient(135deg, #0d1b2a, #1a3a50);
+    color:white;
+    border-radius:0.8rem;
+    padding:2rem 1.5rem;
+    margin-top:2rem;
+  }
+  .summary-box h3 {
+    font-size:1rem;
+    color:var(--gold);
+    margin-bottom:1.2rem;
+    letter-spacing:0.1em;
+  }
+  .summary-grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
+    gap:1rem;
+  }
+  .summary-card {
+    background:rgba(255,255,255,0.07);
+    border:1px solid rgba(255,255,255,0.12);
+    border-radius:0.5rem;
+    padding:0.9rem 1rem;
+  }
+  .summary-day { font-size:0.7rem; color:rgba(255,255,255,0.45); letter-spacing:0.15em; margin-bottom:0.4rem; }
+  .summary-route { font-size:0.88rem; font-weight:600; margin-bottom:0.3rem; }
+  .summary-time { font-family:'Cormorant Garamond',serif; font-size:1.5rem; color:var(--gold); }
+  .summary-unit { font-size:0.7rem; color:rgba(255,255,255,0.5); margin-left:0.2rem; }
+
+  /* CAR SHARE BOX */
+  .car-share-box {
+    background: linear-gradient(135deg, #1a3a50, #0d1b2a);
+    color:white;
+    border-radius:0.8rem;
+    padding:1.5rem;
+    margin:1.5rem 0;
+    border:1px solid rgba(201,168,76,0.3);
+  }
+  .car-share-box h4 {
+    font-size:0.9rem;
+    color:var(--gold);
+    margin-bottom:0.8rem;
+    letter-spacing:0.1em;
+  }
+  .car-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.8rem; }
+  .car-card {
+    background:rgba(255,255,255,0.06);
+    border:1px solid rgba(255,255,255,0.1);
+    border-radius:0.5rem;
+    padding:0.8rem;
+  }
+  .car-card .car-title { font-size:0.85rem; font-weight:600; margin-bottom:0.3rem; }
+  .car-card .car-sub { font-size:0.72rem; color:rgba(255,255,255,0.5); }
+  .car-card .car-detail { font-size:0.78rem; color:rgba(255,255,255,0.7); margin-top:0.4rem; line-height:1.6; }
+
+  @media(max-width:600px){
+    .day-header { flex-wrap:wrap; gap:0.5rem; }
+    .transport-chips { margin-left:0; }
+    .legend { gap:0.8rem; }
+    .car-grid { grid-template-columns:1fr; }
+    .spot-grid { grid-template-columns:1fr; }
+    .day-map-container { height:260px; }
+  }
+
+  /* Leaflet custom marker */
+  .custom-marker {
+    background: var(--alpine);
+    color: white;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    border: 2px solid white;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  }
+  .custom-marker span { transform: rotate(45deg); }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <p class="eyebrow">Transportation · Distance · Duration · Sightseeing</p>
+  <h1>黑部立山六天五夜<br><span>自駕完全攻略</span></h1>
+  <p class="subtitle">🚗 Toyota Alphard / Vellfire 8人座 × 2台 · 9大3小長輩友善自駕 · 景點全收錄</p>
+</div>
+
+<!-- LEGEND -->
+<div class="legend">
+  <div class="legend-item"><div class="leg-dot" style="background:#1a5c85"></div>⏱️ 車程時間</div>
+  <div class="legend-item"><div class="leg-dot" style="background:#2e6b40"></div>📏 距離</div>
+  <div class="legend-item"><div class="leg-dot" style="background:#9a5d00"></div>💴 過路費/停車費</div>
+  <div class="legend-item"><div class="leg-dot" style="background:#b03030"></div>⚠️ 注意事項</div>
+</div>
+
+<div class="main">
+
+<!-- 車隊分配 -->
+<div class="car-share-box">
+  <h4>🚗 車隊分配建議（2台 Alphard / Vellfire 8人座）</h4>
+  <div class="car-grid">
+    <div class="car-card">
+      <div class="car-title">🚗 A車 · Alphard / Vellfire ①</div>
+      <div class="car-sub">司機：待確認</div>
+      <div class="car-detail">
+        👴👵 長輩 5人（輕鬆搭乘，第三排可傾斜休息）<br>
+        👦 小孩 1人（安全座椅）<br>
+        📦 行李：29吋 × 2
+      </div>
+    </div>
+    <div class="car-card">
+      <div class="car-title">🚙 B車 · Alphard / Vellfire ②</div>
+      <div class="car-sub">司機：待確認</div>
+      <div class="car-detail">
+        👨‍👩‍👧‍👦 大人 4人（含主要開車親友）<br>
+        👧👶 小孩 2人（安全座椅）<br>
+        📦 行李：29吋 × 3 + 嬰兒車
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:0.8rem;font-size:0.75rem;color:rgba(255,255,255,0.5);">
+    💡 Alphard/Vellfire 第三排座椅傾斜角度大，長途舒適度佳。建議長輩分配在空間更大的座位，兩台車可透過車載對講機或手機即時聯繫。
+  </div>
+</div>
+
+<!-- ===== DAY 1 ===== -->
+<div class="day-block">
+  <div class="day-header">
+    <div class="day-num-badge">1</div>
+    <div class="day-info">
+      <div class="day-title-text">✈️ 出發日 · 抵達名古屋 → 取車 → 前往松本</div>
+      <div class="day-route-text">台灣 → 名古屋中部國際機場 → 租車 → 松本市（夜宿）</div>
+    </div>
+    <div class="day-total-time">移動約 4–5 小時（含取車）</div>
+  </div>
+  <table class="row-table">
+    <tr class="transport-row"><td>
+      <div class="transport-inner">
+        <span class="transport-icon">✈️</span>
+        <div>
+          <div class="transport-label">台灣 → 名古屋中部國際機場（直飛）</div>
+          <div class="transport-detail">中華航空 / 長榮航空，降落中部國際機場（Centrair）</div>
+        </div>
+        <div class="transport-chips">
+          <span class="chip chip-time">⏱️ 約 2h40m</span>
+          <span class="chip chip-dist">📏 約 2,100 km</span>
+        </div>
+      </div>
+    </td></tr>
+    <tr class="place-row"><td>
+      <div class="place-inner"><div class="place-bullet"></div><div class="place-content">
+        <div class="place-name">🛬 名古屋中部國際機場抵達</div>
+        <div class="place-sub">入境、提領行李、換日幣，建議預留 1 小時</div>
+      </div></div>
+    </td></tr>
+    <tr class="transport-row"><td>
+      <div class="transport-inner">
+        <span class="transport-icon">🚗</span>
+        <div>
+          <div class="transport-label">機場取車 → 兩台 Alphard / Vellfire</div>
+          <div class="transport-detail">TOYOTA Rent-a-Car / Times Car Plus / Nippon Rent-a-Car 皆有機場服務櫃檯，步行 3 分鐘至停車場</div>
+        </div>
+        <div class="transport-chips">
+          <span class="chip chip-time">⏱️ 取車約 30–45 分</span>
+          <span class="chip chip-dist">📏 機場至松本市約 220 km</span>
+        </div>
+      </div>
+    </td></tr>
+    <tr class="transport-row"><td>
+      <div class="transport-inner">
+        <span class="transport-icon">🚗</span>
+        <div>
+          <div class="transport-label">自駕：名古屋 → 松本市（高速公路）</div>
+          <div class="transport-detail">名高速 / 中央自動車道沿途路況良好，2台車前後行駛</div>
+        </div>
+        <div class="transport-chips">
+          <span class="chip chip-time">⏱️ 約 2h30m–3h</span>
+          <span class="chip chip-dist">📏 約 220 km</span>
+          <span class="chip chip-fare">💴 過路費約 ¥3,500–4,000（單趟）</span>
+        </div>
+      </div>
+    </td></tr>
+    <tr class="place-row"><td>
+      <div class="place-inner"><div class="place-bullet"></div><div class="place-content">
+        <div class="place-name">🏙 松本市抵達 · 入住溫泉旅館</div>
+        <div class="place-sub">兩台車停放旅館停車場（市區停車費約 ¥500–800/晚）</div>
+        <div class="place-tags"><span class="ptag ptag-h">住宿：松本市溫泉旅館</span></div>
+      </div></div>
+    </td></tr>
+    <tr class="place-row"><td>
+      <div class="place-inner"><div class="place-bullet"></div><div class="place-content">
+        <div class="place-name">🏯 松本城下町散步（選擇性，視體力）</div>
+        <div class="place-sub">旅館至松本城徒步約 15 分，兩台車可視需求開一台出去，松本城停車場 ¥300/次</div>
+        <div class="place-tags"><span class="ptag ptag-n">景觀</span><span class="ptag ptag-w">停車方便</span></div>
+      </div></div>
+    </td></tr>
+    <tr class="note-row"><td>💡 建議在名古屋機場直接取車不繞路，中央道沿途服務區發達，2小時後抵達松本正好休息。兩台車保持對講機或 LINE 語音聯繫。</td></tr>
+  </table>
+
+  <!-- DAY 1 SPOT CARDS -->
+  <div class="spot-cards">
+    <div class="spot-cards-title">📸 今日景點介紹</div>
+    <div class="spot-grid">
+      <div class="spot-card">
+        <img class="spot-card-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Chubu_Centrair_International_Airport_Aerial_photograph_2016.jpg/640px-Chubu_Centrair_International_Airport_Aerial_photograph_2016.jpg" alt="名古屋中部國際機場" loading="lazy">
+        <div class="spot-card-body">
+          <div class="spot-card-name">✈️ 名古屋中部國際機場（Centrair）</div>
+          <div class="spot-card-desc">愛知縣知多半島西側的人工島機場，落成於2005年愛知世博會前夕。機場內設有溫泉浴場「風之湯」、購物街、展望台，即便長途飛行抵達也能在此舒緩疲憊。租車公司集中於到達大廳附近，步行即可取車。</div>
+          <div class="spot-card-tip">💡 入境後換日幣建議在機場ATM（7-11銀行）匯率較優</div>
+        </div>
+      </div>
+      <div class="spot-card">
+        <img class="spot-card-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Matsumoto_Castle_in_November_2014.jpg/640px-Matsumoto_Castle_in_November_2014.jpg" alt="松本城" loading="lazy">
+        <div class="spot-card-body">
+          <div class="spot-card-name">🏯 松本城</div>
+          <div class="spot-card-desc">日本現存最古老的五重天守閣之一，又稱「烏城」，黑色外牆配合白色壁面在雪景或藍天下極為壯麗。建於16世紀末，是日本100名城之一。城內無電梯，天守閣頂樓樓梯陡峭，長輩可在外護城河邊欣賞即可。松本城週邊步行區有許多土產店。</div>
+          <div class="spot-card-tip">💡 黃昏打燈後拍照極美；早晨8:30開園人少</div>
+        </div>
+      </div>
+      <div class="spot-card">
+        <img class="spot-card-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Asama_Onsen_in_Matsumoto%2C_Nagano.jpg/640px-Asama_Onsen_in_Matsumoto%2C_Nagano.jpg" alt="松本淺間溫泉" loading="lazy">
+        <div class="spot-card-body">
+          <div class="spot-card-name">🛁 松本・淺間溫泉</div>
+          <div class="spot-card-desc">松本市周邊有淺間溫泉（車程10分）和扉溫泉（車程30分），以泉質細膩著稱。市區旅館多含溫泉大浴場，部分提供北阿爾卑斯展望浴室，可邊泡湯邊眺望山脈。旅館多有免費停車場，適合自駕旅客。</div>
+          <div class="spot-card-tip">💡 松本市盛產「山賊燒」（大蒜炸雞）與馬刺，晚餐必試</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DAY 1 MAP -->
+  <div class="day-map-section">
+    <div class="day-map-header">🗺️ DAY 1 路線地圖 · 名古屋機場 → 松本市</div>
+    <div class="day-map-container" id="map1"></div>
+  </div>
+</div>
+
+<!-- ===== DAY 2 ===== -->
+<div class="day-block">
+  <div class="day-header">
+    <div class="day-num-badge">2</div>
+    <div class="day-info">
+      <div class="day-title-text">🌿 上高地仙境漫遊（自駕前往）</div>
+      <div class="day-route-text">松本 → 上高地（停車）→ 大正池 · 田代池 · 河童橋 → 返回松本</div>
+    </div>
+    <div class="day-total-time">移動約 2–3 小時（來回）</div>
+  </div>
+  <table class="row-table">
+    <tr class="transport-row"><td>
+      <div class="transport-inner">
+        <span class="transport-icon">🚗</span>
+        <div>
+          <div class="transport-label">自駕：松本站 → 上高地停車場（新島島）</div>
+          <div class="transport-detail">導航設定「上高地」，沿途路標清晰；山路彎道多，建議保持車距</div>
+        </div>
+        <div class="transport-chips">
+          <span class="chip chip-time">⏱️ 約 1h10m–1h20m</span>
+          <span class="chip chip-dist">📏 約 60 km</span>
+          <span class="chip chip-fare">💴 國道158繞道免過路費</span>
+        </div>
+      </div>
+    </td></tr>
+    <tr class="place-row"><td>
+      <div class="place-inner"><div class="place-bullet"></div><div class="place-content">
+        <div class="place-name">🅿️ 上高地停車場（新島島）</div>
+        <div class="place-sub">上高地唯一自駕停車場，4–11月收費約 ¥520/台（普通車），兩台 ¥1,040；旺季可能滿車，建議 9:00 前抵達</div>
+        <div class="place-tags"><span class="ptag ptag-w">停車費 ¥520/台</span><span class="ptag ptag-warn">⚠️ 旺季早到</span></div>
+      </div></div>
+    </td></tr>
+    <tr class="transport-row"><td>
+      <div class="transport-inner">
+        <span class="transport-icon">🚌</span>
+        <div>
+          <div class="transport-label">上高地線巴士 新島島 → 大正池（前往上高地）</div>
+          <div class="transport-detail">停車場出來步行至巴士站約 3 分；進入上高地需預約巴士位，Alpico巴士（必須）</div>
+        </div>
+        <div class="transport-chips">
+          <span class="chip chip-time">⏱️ 約 55–60 分</span>
+          <span class="chip chip-dist">📏 約 24 km</span>
+          <span class="chip chip-fare">💴 ¥1,750/人</span>
+          <span class="chip chip-warn">⚠️ 必須預約</span>
+        </div>
+      </div>
+    </td></tr>
+    <tr class="section-label"><td colspan="10">📍 上高地景點（步道全程平坦木棧道，長輩友善）</td></tr>
+    <tr class="place-row"><td>
+      <div class="place-inner"><div class="place-bullet"></div><div class="place-content">
+        <div class="place-name">🌊 大正池</div>
+        <div class="place-sub">倒映穗高連峰的晨霧湖面，站在岸邊即可欣賞，無需步行</div>
+        <div class="place-tags"><span class="ptag ptag-n">必看</span><span class="ptag ptag-w">平地 0m</span></div>
+      </div></div>
+    </td></tr>
+    <tr class="place-row"><td>
+      <div class="place-inner"><div class="place-bullet"></div><div class="place-content">
+        <div class="place-name">🌱 田代池 → 田代濕原 → 河童橋（步道散步）</div>
+        <div class="place-sub">大正池 → 河童橋：全程約 3.5 km，平坦木棧道，步行約 60–80 分鐘（含停留）。可中途搭接駁巴士短跳。</div>
+        <div class="place-tags"><span class="ptag ptag-n">散步</span><span class="ptag ptag-w">平坦無爬坡</span></div>
+      </div></div>
+    </td></tr>
+    <tr class="place-row"><td>
+      <div class="place-inner"><div class="place-bullet"></div><div class="place-content">
+        <div class="place-name">☕️ 上高地帝國飯店（午餐）</div>
+        <div class="place-sub">建議提前預約；距河童橋步行約 5 分</div>
+        <div class="place-tags"><span class="ptag ptag-f">餐飲</span></div>
+      </div></div>
+    </td></tr>
+    <tr class="transport-row"><td>
+      <div class="transport-inner">
+        <span class="transport-icon">🚌</span>
+        <div>
+          <div class="transport-label">返程巴士 上高地 → 新島島停車場</div>
+          <div class="transport-detail">上高地巴士總站搭車，返回停車場取車</div>
+        </div>
+        <div class="transport-chips">
+          <span class="chip chip-time">⏱️ 約 55–60 分</span>
+          <span class="chip chip-fare">💴 ¥1,750/人</span>
+          <span class="chip chip-warn">⚠️ 確認末班車時間</span>
+        </div>
+      </div>
+    </td></tr>
+    <tr class="transport-row"><td>
+      <div class="transport-inner">
+        <span class="transport-icon">🚗</span>
+        <div>
+          <div class="transport-label">自駕返程：新島島 → 松本市區</div>
+          <div class="transport-detail">山路約 1 小時返回松本市</div>
+        </div>
+        <div class="transport-chips">
+          <span class="chip chip-time">⏱️ 約 1h10m</span>
+          <span class="chip chip-dist">📏 約 60 km</span>
+        </div>
+      </div>
+    </td></tr>
+    <tr class="note-row"><td>💡 自駕上高地的優勢：不受巴士預約限制，隨時出發但需注意上高地禁止私家車進入（統一搭乘巴士），停車後轉乘巴士進入。建議購買「上高地周遊巴士票」更划算。</td></tr>
+  </table>
+
+  <!-- DAY 2 SPOT CARDS -->
+  <div class="spot-cards">
+    <div class="spot-cards-title">📸 今日景點介紹</div>
+    <div class="spot-grid">
+      <div class="spot-card">
+        <img class="spot-card-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Taisho_Pond_Kamikochi01s3s4272.jpg/640px-Taisho_Pond_Kamikochi01s3s4272.jpg" alt="大正池" loading="lazy">
+        <div class="spot-card-body">
+          <div class="spot-card-name">🌊 大正池</div>
+          <div class="spot-card-desc">1915年焼岳火山噴發造成梓川堰塞而成的天然湖泊，因大正年間形成而得名。湖面如鏡，倒映穗高連峰（海拔3190m）與周圍針葉林。清晨有大量水蒸氣形成晨霧，光線穿透時如夢似幻，被稱為「上高地最美的一景」。湖中有立枯木，為候鳥棲息地。</div>
+          <div class="spot-card-tip">💡 早晨7–9時晨霧最濃，光線最美，攝影必爭時段</div>
+        </div>
+      </div>
+      <div class="spot-card">
+        <img class="spot-card-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Kappa_Bridge_and_Mt._Hotaka.jpg/640px-Kappa_Bridge_and_Mt._Hotaka.jpg" alt="河童橋" loading="lazy">
+        <div class="spot-card-body">
+          <div class="spot-card-name">🌉 河童橋</div>
+          <div class="spot-card-desc">上高地最具代表性的吊橋，橫跨梓川，背後是雄偉的穗高連峰。橋名來自當地流傳的河童傳說。橋長36.6m，橋上視野絕佳，前方穗高岳雪峰倒映在清澈河川中。此地海拔1504m，夏季也相當涼爽，是上高地的交通樞紐，周邊有餐廳、商店。</div>
+          <div class="spot-card-tip">💡 橋邊設有上高地帝國飯店，建議早訂露台座位午餐</div>
+        </div>
+      </div>
+      <div class="spot-card">
+        <img class="spot-card-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Tashiro_Marsh_in_Kamikochi_2009.jpg/640px-Tashiro_Marsh_in_Kamikochi_2009.jpg" alt="田代濕原" loading="lazy">
+        <div class="spot-card-body">
+          <div class="spot-card-name">🌱 田代池 · 田代濕原</div>
+          <div class="spot-card-desc">大正池與河童橋之間的靜謐濕地，木棧道全程平坦無障礙，長輩友善。田代池水源來自霞沢岳山麓伏流，水質清澈透明，水底可見砂礫。秋季（10月上旬）楓紅與濕原草地呈現金紅色彩，是日本攝影師最愛的秋景之一。</div>
+          <div class="spot-card-tip">💡 步道全程木棧道，即使下雨也不泥濘，嬰兒車可通行</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DAY 2 MAP -->
+  <div class="day-map-section">
+    <div class="day-map-header">🗺️ DAY 2 路線地圖 · 松本 ⇌ 上高地</div>
+    <div class="day-map-container" id="map2"></div>
+  </div>
+</div>
+
+<!-- ===== DAY 3 ===== -->
+<div class="day-block">
+  <div class="day-header">
+    <div class="day-num-badge">3</div>
+    <div class="day-info">
+      <div class="day-title-text">🚠 黑部立山阿爾卑斯路線（自駕至扇澤）</div>
+      <div class="day-route-text">松本 → 信濃大町 → 扇澤（停車）→ 阿爾卑斯山脈路線 → 室堂</div>
+    </div>
+    <div class="day-total-time">移動約 6–8 小時（含景點）</div>
+  </div>
+  <table class="row-table">
+    <tr class="transport-row"><td>
+      <div class="transport-inner">
+        <span class="transport-icon">🚗</span>
+        <div>
+          <div class="transport-label">自駕：松本站 → 信濃大町 → 扇澤</div>
+          <div class="transport-detail">國道148 / 國道19，沿北アルプス山麓行駛風景優美，山路彎道多</div>
+        </div>
+        <div class="transport-chips">
+          <span class="chip chip-time">⏱️ 約 1h30m</span>
+          <span class="chip chip-dist">📏 約 65 km</span>
+          <span class="chip chip-fare">💴 過路費：松本→信濃大町約 ¥1,500</span>
+        </div>
+      </div>
+    </td></tr>
+    <tr class="place-row"><td>
+      <div class="place-inner"><div class="place-bullet"></div><div class="place-content">
+        <div class="place-name">🅿️ 扇澤停車場（普通車 ¥520/次）</div>
+        <div class="place-sub">旺季停車場可能滿滿，建議 8:30 前抵達；兩台車停車費共 ¥1,040</div>
+        <div class="place-tags"><span class="ptag ptag-w">停車 ¥520/台</span><span class="ptag ptag-warn">⚠️ 旺季早到</span></div>
+      </div></div>
+    </td></tr>
+  </table>
+
+  <div class="section-label" style="background:#eaf4fc;color:#1a5c85;font-weight:600;">🏔 立山黑部阿爾卑斯山脈路線 各段交通工具詳細（扇澤 → 室堂）</div>
+  <table class="alpen-table">
+    <tr class="seg-row"><td class="seg-icon">🚌</td>
+      <td><div class="seg-route">扇澤 → 黑部水庫（黑部湖）</div><div class="seg-tool">關電隧道電氣巴士（地下隧道穿越，2019年更新為電動巴士）</div></td>
+      <td class="seg-time"><span class="seg-badge">⏱️ 16 分</span><br><span style="font-size:0.7rem;color:#888">6.1 km</span></td>
+    </tr>
+    <tr class="seg-row"><td class="seg-icon">🚶</td>
+      <td><div class="seg-route">黑部水庫步行 → 黑部湖站</div><div class="seg-tool">壩頂步行（俯瞰黑部湖壯闊景色），約 10 分鐘平路</div></td>
+      <td class="seg-time"><span class="seg-badge">⏱️ 10 分</span><br><span style="font-size:0.7rem;color:#888">500 m</span></td>
+    </tr>
+    <tr class="seg-row"><td class="seg-icon">🚠</td>
+      <td><div class="seg-route">黑部湖 → 黑部平</div><div class="seg-tool">黑部斜面電車（地下纜車，日本唯一全地下纜車，坡度 31°）</div></td>
+      <td class="seg-time"><span class="seg-badge">⏱️ 5 分</span><br><span style="font-size:0.7rem;color:#888">0.8 km</span></td>
+    </tr>
+    <tr class="seg-row"><td class="seg-icon">🚡</td>
+      <td><div class="seg-route">黑部平 → 大觀峰</div><div class="seg-tool">立山空中纜車（日本最長無支柱纜車 1.7 km，空中飛越黑部峽谷）</div></td>
+      <td class="seg-time"><span class="seg-badge">⏱️ 7 分</span><br><span style="font-size:0.7rem;color:#888">1.7 km</span></td>
+    </tr>
+    <tr class="seg-row"><td class="seg-icon">🚌</td>
+      <td><div class="seg-route">大觀峰 → 室堂</div><div class="seg-tool">立山隧道電動巴士（2025年起取代原無軌電車，穿越立山隧道）</div></td>
+      <td class="seg-time"><span class="seg-badge">⏱️ 10 分</span><br><span style="font-size:0.7rem;color:#888">3.7 km</span></td>
+    </tr>
+    <tr class="seg-total-row">
+      <td colspan="2">🏔 扇澤 → 室堂（含等待換乘時間）合計約</td>
+      <td class="seg-time" style="color:var(--alpine);font-size:1rem;">⏱️ 約 2–3 小時</td>
+    </tr>
+  </table>
+
+  <table class="row-table">
+    <tr class="place-row"><td>
+      <div class="place-inner"><div class="place-bullet"></div><div class="place-content">
+        <div class="place-name">🌊 黑部湖 · 黑部水庫（停留）</div>
+        <div class="place-sub">壩頂景觀步道 500m（平路），可眺望翡翠藍湖面和後立山連峰。6月下旬–10月有壯觀放水（每秒 10 噸）。</div>
+        <div class="place-tags"><span class="ptag ptag-n">壯觀</span><span class="ptag ptag-w">步行 500m 平路</span></div>
+      </div></div>
+    </td></tr>
+    <tr class="place-row"><td>
+      <div class="place-inner"><div class="place-bullet"></div><div class="place-content">
+        <div class="place-name">🏔 室堂平（海拔 2,450m）抵達 · 入住</div>
+        <div class="place-sub">御庫裏池散步（木棧道，約 500m 繞湖）；雪之大谷（4–6月限定，平坦步道 500m）；夕陽雲海、夜觀星空。</div>
+        <div class="place-tags"><span class="ptag ptag-h">住宿：立山飯店 or 雷鳥莊</span><span class="ptag ptag-n">星空</span></div>
+      </div></div>
+    </td></tr>
+    <tr class="note-row"><td>💡 扇澤→室堂來回（阿爾卑斯山脈路線）建議直接購買來回票，12歲以上同大人票價，現場或網路預訂。旺季（4–5月、10月）人潮極多，建議 9:00 前抵達扇澤。<br>
+    ⚠️ 自駕至扇澤停車後，兩台車的車鑰匙由誰保管？建議事先約定，以免影響行程。</td></tr>
+  </table>
+
+  <!-- DAY 3 SPOT CARDS -->
+  <div class="spot-cards">
+    <div class="spot-cards-title">📸 今日景點介紹</div>
+    <div class="spot-grid">
+      <div class="spot-card">
+        <img class="spot-card-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Kurobe_dam01s3200.jpg/640px-Kurobe_dam01s3200.jpg" alt="黑部水庫" loading="lazy">
+        <div class="spot-card-body">
+          <div class="spot-card-name">🌊 黑部水庫（黑部ダム）</div>
+          <div class="spot-card-desc">日本最高的拱形水壩，壩高186m，耗費7年（1956–1963）建成，建造期間死亡171人。水庫容量約2億噸。翡翠色湖面四周環繞後立山連峰，被稱為「日本版的天空之湖」。每年6月26日起至10月15日進行放水，豪壯的水柱每秒最多達10噸，搭配彩虹令人震撼。</div>
+          <div class="spot-card-tip">💡 壩頂展望台免費，出口有黑部水庫咖哩（知名名物）</div>
+        </div>
+      </div>
+      <div class="spot-card">
+        <img class="spot-card-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Tateyama_Ropeway_01.jpg/640px-Tateyama_Ropeway_01.jpg" alt="立山空中纜車" loading="lazy">
+        <div class="spot-card-body">
+          <div class="spot-card-name">🚡 立山空中纜車（ロープウェイ）</div>
+          <div class="spot-card-desc">全長1.7km，是日本最長的無支柱纜車，單次可搭載80人，車廂在空中橫跨黑部峽谷，腳下是茂密原始林和深達1000m的峽谷。天氣晴朗時可眺望劍岳、龍王岳等後立山群峰，以及遠方的富山灣。整段搭乘時間僅7分鐘，但震撼感十足。</div>
+          <div class="spot-card-tip">💡 大霧天能見度低，但雲海中穿行也別有風味</div>
+        </div>
+      </div>
+      <div class="spot-card">
+        <img class="spot-card-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Mikuri_Pond_2010.jpg/640px-Mikuri_Pond_2010.jpg" alt="室堂平御庫裏池" loading="lazy">
+        <div class="spot-card-body">
+          <div class="spot-card-name">🏔 室堂平・御庫裏池（海拔 2,450m）</div>
+          <div class="spot-card-desc">立山山麓的高原平地，御庫裏池（みくりが池）是日本最高海拔的火口湖，湖面湛藍，倒映立山三山。住宿設施「立山飯店」與「雷鳥莊」均在此，夜間無光害，銀河清晰可見。雷鳥是此地的代表動物，在草叢間常可遇見。</div>
+          <div class="spot-card-tip">💡 高山症注意：抵達後先緩慢步行，避免劇烈活動1小時</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DAY 3 MAP -->
+  <div class="day-map-section">
+    <div class="day-map-header">🗺️ DAY 3 路線地圖 · 松本 → 扇澤 → 黑部立山阿爾卑斯路線</div>
+    <div class="day-map-container" id="map3"></div>
+  </div>
+</div>
+
+<!-- ===== DAY 4 ===== -->
+<div class="day-block">
+  <div class="day-header">
+    <div class="day-num-badge">4</div>
+    <div class="day-info">
+      <div class="day-title-text">⛄️ 雪之大谷 · 立山下山 → 富山</div>
+      <div class="day-route-text">室堂 → 美女平 → 立山站 → 富山（自駕移動）</div>
+    </div>
+    <div class="day-total-time">移動約 3 小時</div>
+  </div>
+  <table class="row-table">
+    <tr class="place-row"><td>
+      <div class="place-inner"><div class="place-bullet"></div><div class="place-content">
+        <div class="place-name">⛄️ 雪之大谷步道（室堂，早晨）</div>
+        <div class="place-sub">步道全長約 500m，完全平坦；4–6月限定，雪牆高 10–20m；開放至 15:00，早晨人少景美</div>
+        <div class="place-tags"><span class="ptag ptag-n">4–6月限定</span><span class="ptag ptag-w">步行 500m 平地</span></div>
+      </div></div>
+    </td></tr>
+    <tr class="transport-row"><td>
+      <div class="transport-inner">
+        <span class="transport-icon">🚌</span>
+        <div>
+          <div class="transport-label">立山高原巴士 室堂 → 美女平</div>
+          <div class="transport-detail">沿途俯瞰立山杉巨木林道、彌陀原濕地，車窗欣賞不需步行</div>
+        </div>
+        <div class="transport-chips">
+          <span class="chip chip-time">⏱️ 約 50 分</span>
+          <span class="chip chip-dist">📏 約 23 km</span>
+        </div>
+      </div>
+    </td></tr>
+    <tr class="transport-row"><td>
+      <div class="transport-inner">
+        <span class="transport-icon">🚡</span>
+        <div>
+          <div class="transport-label">立山登山纜車 美女平 → 立山站</div>
+          <div class="transport-detail">海拔落差 500m，7 分鐘俯瞰立山山腳全景</div>
+        </div>
+        <div class="transport-chips">
+          <span class="chip chip-time">⏱️ 7 分</span>
+          <span class="chip chip-dist">📏 1.3 km</span>
+        </div>
+      </div>
+    </td></tr>
+    <tr class="place-row"><td>
+      <div class="place-inner"><div class="place-bullet"></div><div class="place-content">
+        <div class="place-name">🚗 立山站取車 → 自駕前往富山</div>
+        <div class="place-sub">立山站停車場取車（如前一晚停放），或從美女平搭巴士回立山站取車</div>
+        <div class="place-tags"><span class="ptag ptag-h">⚠️ 確認前一晚停車地點</span></div>
+      </div></div>
+    </td></tr>
+    <tr class="transport-row"><td>
+      <div class="transport-inner">
+        <span class="transport-icon">🚗</span>
+        <div>
+          <div class="transport-label">自駕：立山站 → 富山（富山灣）</div>
+          <div class="transport-detail">國道41號／富山高橋 IC，開車輕鬆直達</div>
+        </div>
+        <div class="transport-chips">
+          <span class="chip chip-time">⏱️ 約 1h15m</span>
+          <span class="chip chip-dist">📏 約 65 km</span>
+          <span class="chip chip-fare">💴 過路費約 ¥1,200</span>
+        </div>
+      </div>
+    </td></tr>
+    <tr class="place-row"><td>
+      <div class="place-inner"><div class="place-bullet"></div><div class="place-content">
+        <div class="place-name">🌊 富山市抵達 · 入住溫泉旅館</div>
+        <div class="place-sub">富山灣直送白蝦、螢火魷、寒鰤，晚餐務必品嚐；兩台車停放旅館停車場</div>
+        <div class="place-tags"><span class="ptag ptag-h">住宿：富山溫泉旅館</span><span class="ptag ptag-f">富山灣海鮮</span></div>
+      </div></div>
+    </td></tr>
+    <tr class="note-row"><td>💡 這天從立山往富山方向行駛，途中可於「雨晴海岸」停車休息（免費），看到立山連峰與海景。</td></tr>
+  </table>
+
+  <!-- DAY 4 SPOT CARDS -->
+  <div class="spot-cards">
+    <div class="spot-cards-title">📸 今日景點介紹</div>
+    <div class="spot-grid">
+      <div class="spot-card">
+        <img class="spot-card-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Snow_Corridor_Tateyama_Kurobe_Alpine_Route.jpg/640px-Snow_Corridor_Tateyama_Kurobe_Alpine_Route.jpg" alt="雪之大谷" loading="lazy">
+        <div class="spot-card-body">
+          <div class="spot-card-name">⛄️ 雪之大谷（雪の大谷）</div>
+          <div class="spot-card-desc">每年4月中旬至6月初限定開放，立山高原公路兩側的雪壁高度可達15–20公尺，形成壯觀的「雪谷」走廊。除雪作業每年需50天以上，最深積雪可達3公尺。步道全長500m完全平坦，雪牆觸手可及，親子同遊極為震撼。不同年份雪量不同，可提前查詢當年積雪高度。</div>
+          <div class="spot-card-tip">💡 4月下旬積雪最高，5月底前往較不擁擠</div>
+        </div>
+      </div>
+      <div class="spot-card">
+        <img class="spot-card-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Amaharashi_coast01s3200.jpg/640px-Amaharashi_coast01s3200.jpg" alt="雨晴海岸" loading="lazy">
+        <div class="spot-card-body">
+          <div class="spot-card-name">🌊 雨晴海岸（あめはらし）</div>
+          <div class="spot-card-desc">富山灣沿岸的絕景海岸，晴天時可眺望立山連峰倒映在寧靜的富山灣上，是全日本極少數能同時看到海與三千公尺雪山的景點。義經社（源義經藏雨之地）的傳說更增添古意。被選為「日本夕陽百選」，夏季日落時分立山剪影最為壯麗。</div>
+          <div class="spot-card-tip">💡 免費路邊停車，下車即可拍攝，長輩零負擔</div>
+        </div>
+      </div>
+      <div class="spot-card">
+        <img class="spot-card-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Toyama_Shiro_Ebi_02.jpg/640px-Toyama_Shiro_Ebi_02.jpg" alt="富山白蝦" loading="lazy">
+        <div class="spot-card-body">
+          <div class="spot-card-name">🦐 富山灣海鮮三寶</div>
+          <div class="spot-card-desc">富山灣被稱為「天然的生簀（魚池）」，三大名物：白蝦（世界僅產於富山灣，甜度極高）、螢火魷（全球捕獲量九成來自此地，3–5月旺季）、寒鰤（冬季從日本海迴遊入富山灣，油脂豐厚）。富山站周邊「昆布締め」料理也是在地特色。</div>
+          <div class="spot-card-tip">💡 富山站「きときと市場」可購買白蝦仙貝等伴手禮</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DAY 4 MAP -->
+  <div class="day-map-section">
+    <div class="day-map-header">🗺️ DAY 4 路線地圖 · 室堂 → 立山站 → 富山</div>
+    <div class="day-map-container" id="map4"></div>
+  </div>
+</div>
+
+<!-- ===== DAY 5 ===== -->
+<div class="day-block">
+  <div class="day-header">
+    <div class="day-num-badge">5</div>
+    <div class="day-info">
+      <div class="day-title-text">🏘 白川鄉合掌村 · 前往金澤</div>
+      <div class="day-route-text">富山 → 白川鄉 → 金澤（兩台車自駕）</div>
+    </div>
+    <div class="day-total-time">移動約 2h30m–3h</div>
+  </div>
+  <table class="row-table">
+    <tr class="transport-row"><td>
+      <div class="transport-inner">
+        <span class="transport-icon">🚗</span>
+        <div>
+          <div class="transport-label">自駕：富山 → 白川鄉合掌村</div>
+          <div class="transport-detail">國道156號 → 國道471號，穿越東海北陸自動車道（或直接上高速公路）</div>
+        </div>
+        <div class="transport-chips">
+          <span class="chip chip-time">⏱️ 約 1h20m–1h30m</span>
+          <span class="chip chip-dist">📏 約 80 km</span>
+          <span class="chip chip-fare">💴 過路費約 ¥1,800（部分路段免費）</span>
+        </div>
+      </div>
+    </td></tr>
+    <tr class="place-row"><td>
+      <div class="place-inner"><div class="place-bullet"></div><div class="place-content">
+        <div class="place-name">🅿️ 村營駐車場（荻町城跡附近）</div>
+        <div class="place-sub">普通車 ¥600/台，兩台共 ¥1,200；入口稍有坡度，排班需耐心；步行至合掌村核心地帶約 5–10 分</div>
+        <div class="place-tags"><span class="ptag ptag-w">停車 ¥600/台</span><span class="ptag ptag-warn">⚠️ 旺季可能滿車</span></div>
+      </div></div>
+    </td></tr>
+    <tr class="section-label"><td colspan="10">📍 白川鄉合掌村（世界文化遺產）步行距離與時間</td></tr>
+    <tr class="place-row"><td>
+      <div class="place-inner"><div class="place-bullet"></div><div class="place-content">
+        <div class="place-name">🚌 展望台接駁巴士 → 荻町城跡展望台</div>
+        <div class="place-sub">巴士站 → 展望台：巴士 5 分（¥200）或步行上坡約 15 分；俯瞰整座合掌村全景，長輩建議搭巴士。</div>
+        <div class="place-tags"><span class="ptag ptag-n">必看全景</span><span class="ptag ptag-w">巴士可達</span></div>
+      </div></div>
+    </td></tr>
+    <tr class="place-row"><td>
+      <div class="place-inner"><div class="place-bullet"></div><div class="place-content">
+        <div class="place-name">🏡 合掌造聚落散步</div>
+        <div class="place-sub">停車場 → 和田家（重要文化財）：步行約 1 分；整個聚落散步全程約 1.5 km，石板路略崎嶇，建議穿防滑鞋</div>
+        <div class="place-tags"><span class="ptag ptag-n">世界遺產</span><span class="ptag ptag-w">散步 1.5km</span></div>
+      </div></div>
+    </td></tr>
+    <tr class="place-row"><td>
+      <div class="place-inner"><div class="place-bullet"></div><div class="place-content">
+        <div class="place-name">🍖 午餐：飛驒牛朴葉味噌定食（聚落內餐廳）</div>
+        <div class="place-tags"><span class="ptag ptag-f">餐飲</span></div>
+      </div></div>
+    </td></tr>
+    <tr class="transport-row"><td>
+      <div class="transport-inner">
+        <span class="transport-icon">🚗</span>
+        <div>
+          <div class="transport-label">自駕：白川鄉 → 金澤</div>
+          <div class="transport-detail">國道156號或直接上高速公路，兩條路線風景皆優</div>
+        </div>
+        <div class="transport-chips">
+          <span class="chip chip-time">⏱️ 約 1h10m–1h20m</span>
+          <span class="chip chip-dist">📏 約 76 km</span>
+          <span class="chip chip-fare">💴 過路費約 ¥1,700</span>
+        </div>
+      </div>
+    </td></tr>
+    <tr class="place-row"><td>
+      <div class="place-inner"><div class="place-bullet"></div><div class="place-content">
+        <div class="place-name">🏯 金澤抵達 · 入住兼六園附近旅館</div>
+        <div class="place-sub">兩台車停放旅館停車場；晚餐：近江町市場周邊居酒屋，加賀料理或海鮮</div>
+        <div class="place-tags"><span class="ptag ptag-h">住宿：金澤溫泉旅館</span><span class="ptag ptag-f">加賀料理</span></div>
+      </div></div>
+    </td></tr>
+    <tr class="note-row"><td>💡 這天兩台車一起出發，白川鄉停車場走路 5 分鐘可到展望台巴士站，建議先搭巴士上山看全景，再慢慢散步下來。旺季（10月紅葉、12月雪景）停車場非常擁擠，可能需停到外圍替代停車場（免費接駺車）。</td></tr>
+  </table>
+
+  <!-- DAY 5 SPOT CARDS -->
+  <div class="spot-cards">
+    <div class="spot-cards-title">📸 今日景點介紹</div>
+    <div class="spot-grid">
+      <div class="spot-card">
+        <img class="spot-card-img" src="https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=600&q=80" alt="白川鄉合掌村" loading="lazy">
+        <div class="spot-card-body">
+          <div class="spot-card-name">🏘 白川鄉合掌村</div>
+          <div class="spot-card-desc">1995年登錄UNESCO世界文化遺產，「合掌造」是指雙手合十的屋頂形狀，茅草厚達1公尺，可承受積雪3噸以上。荻町聚落現存約100棟合掌屋，其中部分提供住宿與餐廳。冬季雪景（12–2月）燈光祭期間，整個村莊宛如童話世界。飛驒牛霜降烤肉與朴葉味噌是當地名物。</div>
+          <div class="spot-card-tip">💡 荻町城跡展望台是拍攝合掌村全景的最佳角度，早晨霧氣繚繞更夢幻</div>
+        </div>
+      </div>
+      <div class="spot-card">
+        <img class="spot-card-img" src="https://images.unsplash.com/photo-1589308078059-be1415eab4c3?w=600&q=80" alt="金澤兼六園" loading="lazy">
+        <div class="spot-card-body">
+          <div class="spot-card-name">🌿 金澤・兼六園周邊</div>
+          <div class="spot-card-desc">金澤是石川縣首府，江戶時代前田家的城下町，保存了大量武家文化與工藝傳統。兼六園（日本三名園之一）四季景色各異，園內有日本最古老的噴水。金澤城公園、東茶屋街（傳統茶屋建築）、近江町市場都在步行距離內，是日本保存最完整的城下町之一。</div>
+          <div class="spot-card-tip">💡 金澤「加賀料理」必點：治部煮、加賀蟹、能登牡蠣</div>
+        </div>
+      </div>
+      <div class="spot-card">
+        <img class="spot-card-img" src="https://images.unsplash.com/photo-1601050690597-df0568f70950?w=600&q=80" alt="飛驒牛料理" loading="lazy">
+        <div class="spot-card-body">
+          <div class="spot-card-name">🥩 飛驒牛 · 朴葉味噌燒</div>
+          <div class="spot-card-desc">飛驒牛是日本四大和牛品牌之一，在岐阜縣飛驒山區放養，肉質細緻、霜降均勻。「朴葉味噌」是飛驒地區的傳統料理，以朴樹葉鋪底，在炭火上慢烤特調味噌，再將飛驒牛肉片放入煮熟，香氣撲鼻。白川鄉聚落內有數間以朴葉味噌聞名的老店，用餐需事先預訂。</div>
+          <div class="spot-card-tip">💡 五平餅（糯米烤餅）是白川鄉另一個必吃小吃，¥200/串</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DAY 5 MAP -->
+  <div class="day-map-section">
+    <div class="day-map-header">🗺️ DAY 5 路線地圖 · 富山 → 白川鄉 → 金澤</div>
+    <div class="day-map-container" id="map5"></div>
+  </div>
+</div>
+
+<!-- ===== DAY 6 ===== -->
+<div class="day-block">
+  <div class="day-header">
+    <div class="day-num-badge">6</div>
+    <div class="day-info">
+      <div class="day-title-text">🏯 金澤漫遊 · 還車 → 返台</div>
+      <div class="day-route-text">金澤 → 名古屋中部國際機場 → 還車 → 台灣</div>
+    </div>
+    <div class="day-total-time">移動約 5–6 小時（含還車）</div>
+  </div>
+  <table class="row-table">
+    <tr class="section-label"><td colspan="10">📍 金澤市區景點（兩台車可一台遊覽、一台停放市區）</td></tr>
+    <tr class="place-row"><td>
+      <div class="place-inner"><div class="place-bullet"></div><div class="place-content">
+        <div class="place-name">🌿 兼六園晨間散步</div>
+        <div class="place-sub">飯店 → 兼六園：依住宿地點步行 5–15 分。園內散步全程約 1.5–2 km，碎石路平坦，冬季有融雪劑處理。早晨 7:00 前免費入園。</div>
+        <div class="place-tags"><span class="ptag ptag-n">日本三名園</span><span class="ptag ptag-w">散步 1.5 km</span></div>
+      </div></div>
+    </td></tr>
+    <tr class="place-row"><td>
+      <div class="place-inner"><div class="place-bullet"></div><div class="place-content">
+        <div class="place-name">🏯 金澤城公園 + 玉泉院丸庭園</div>
+        <div class="place-sub">兼六園毗鄰，步行 3 分；庭園全程約 800m，平坦</div>
+        <div class="place-tags"><span class="ptag ptag-n">自然</span><span class="ptag ptag-w">散步 800m</span></div>
+      </div></div>
+    </td></tr>
+    <tr class="place-row"><td>
+      <div class="place-inner"><div class="place-bullet"></div><div class="place-content">
+        <div class="place-name">🛍 近江町市場（購伴手禮）</div>
+        <div class="place-sub">兼六園 → 近江町市場：步行約 15 分（850m）或搭計程車 ¥700；建議在此採購海鮮及和菓子伴手禮</div>
+        <div class="place-tags"><span class="ptag ptag-f">購物</span><span class="ptag ptag-w">步行 850m</span></div>
+      </div></div>
+    </td></tr>
+    <tr class="transport-row"><td>
+      <div class="transport-inner">
+        <span class="transport-icon">🚗</span>
+        <div>
+          <div class="transport-label">自駕：金澤 → 名古屋中部國際機場（還車）</div>
+          <div class="transport-detail">沿途經過米原 JCT → 名神高速，兩台車結伴同行</div>
+        </div>
+        <div class="transport-chips">
+          <span class="chip chip-time">⏱️ 約 3h30m–4h</span>
+          <span class="chip chip-dist">📏 約 300 km</span>
+          <span class="chip chip-fare">💴 過路費約 ¥4,500（單趟，兩台共 ¥9,000）</span>
+        </div>
+      </div>
+    </td></tr>
+    <tr class="place-row"><td>
+      <div class="place-inner"><div class="place-bullet"></div><div class="place-content">
+        <div class="place-name">🚗 名古屋中部國際機場還車</div>
+        <div class="place-sub">還車前建議加油至滿油；機場還車櫃檯至停車場步行約 3 分；還車作業約 20–30 分</div>
+        <div class="place-tags"><span class="ptag ptag-warn">⚠️ 還車前加滿油</span></div>
+      </div></div>
+    </td></tr>
+    <tr class="transport-row"><td>
+      <div class="transport-inner">
+        <span class="transport-icon">✈️</span>
+        <div>
+          <div class="transport-label">名古屋中部國際機場 → 台灣（直飛返台）</div>
+          <div class="transport-detail">建議選晚班機，保留足夠交通緩衝時間（建議 19:00 後起飛航班）</div>
+        </div>
+        <div class="transport-chips">
+          <span class="chip chip-time">⏱️ 約 2h40m</span>
+        </div>
+      </div>
+    </td></tr>
+    <tr class="note-row"><td>💡 建議早上 9:00 前離開金澤，12:00 前抵達機場還車，保證充裕時間。最後一天行李較多，兩台車可以分工：一台載大件行李直接去機場，一台在市區最後購物後會合。</td></tr>
+  </table>
+
+  <!-- DAY 6 SPOT CARDS -->
+  <div class="spot-cards">
+    <div class="spot-cards-title">📸 今日景點介紹</div>
+    <div class="spot-grid">
+      <div class="spot-card">
+        <img class="spot-card-img" src="https://images.unsplash.com/photo-1590559899731-a382839e5549?w=600&q=80" alt="兼六園" loading="lazy">
+        <div class="spot-card-body">
+          <div class="spot-card-name">🌿 兼六園</div>
+          <div class="spot-card-desc">日本三名園（偕樂園、後樂園、兼六園）之一，由加賀藩前田家歷代藩主歷費180年建造而成。面積11.7公頃，融合了六個庭園美學：宏大、幽邃、人力、蒼古、水泉、眺望。冬季有「雪吊」松樹保護裝置，是金澤冬季的標誌景象。早晨7時前免費入園，推薦趁人少漫步。</div>
+          <div class="spot-card-tip">💡 7:00 前免費，7:00 後收費 ¥320（65歲以上免費）</div>
+        </div>
+      </div>
+      <div class="spot-card">
+        <img class="spot-card-img" src="https://images.unsplash.com/photo-1576675784432-e8f7e22bdacf?w=600&q=80" alt="近江町市場" loading="lazy">
+        <div class="spot-card-body">
+          <div class="spot-card-name">🛍 近江町市場（おみちょ）</div>
+          <div class="spot-card-desc">金澤市民的廚房，300年以上歷史的傳統市場。約200家店舖販售能登海鮮（螃蟹、牡蠣、海膽）、加賀蔬菜、和菓子、金澤工藝品。市場內的迴轉壽司「大倉」以即撈海鮮著稱，現場食用最鮮美。2階設有免稅購物區，加賀棒茶、金箔製品等是熱門伴手禮。</div>
+          <div class="spot-card-tip">💡 市場約 9:00 開始營業，10:00 前人最少，海鮮最齊全</div>
+        </div>
+      </div>
+      <div class="spot-card">
+        <img class="spot-card-img" src="https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=600&q=80" alt="金澤城" loading="lazy">
+        <div class="spot-card-body">
+          <div class="spot-card-name">🏯 金澤城公園 · 玉泉院丸庭園</div>
+          <div class="spot-card-desc">前田家的居城，現存石川門（重要文化財）和三十間長屋，正在進行段階式復原工程。玉泉院丸庭園是第3代藩主珠姬的御庭，以石垣瀑布「色紙短冊積石垣」最具特色，夜間打燈後配合石垣倒映池面，是金澤最美的夜景之一。緊鄰兼六園，可步行往返，長輩友善。</div>
+          <div class="spot-card-tip">💡 金澤城公園入場免費；玉泉院丸庭園成人 ¥320</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DAY 6 MAP -->
+  <div class="day-map-section">
+    <div class="day-map-header">🗺️ DAY 6 路線地圖 · 金澤漫遊 → 名古屋機場返台</div>
+    <div class="day-map-container" id="map6"></div>
+  </div>
+</div>
+
+<!-- SUMMARY -->
+<div class="summary-box">
+  <h3>📊 六天自駕總距離與費用概算（2台 Alphard 合計）</h3>
+  <div class="summary-grid">
+    <div class="summary-card">
+      <div class="summary-day">DAY 1</div>
+      <div class="summary-route">名古屋機場 → 松本</div>
+      <div><span class="summary-time">220</span><span class="summary-unit">km</span></div>
+      <div style="font-size:0.72rem;color:rgba(255,255,255,0.4);margin-top:0.3rem;">過路費 ¥7,000–8,000（2台）</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-day">DAY 2</div>
+      <div class="summary-route">松本 ⇌ 上高地</div>
+      <div><span class="summary-time">120</span><span class="summary-unit">km</span></div>
+      <div style="font-size:0.72rem;color:rgba(255,255,255,0.4);margin-top:0.3rem;">停車 ¥1,040 + 巴士（詳見上表）</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-day">DAY 3</div>
+      <div class="summary-route">松本 → 扇澤 → 室堂</div>
+      <div><span class="summary-time">65</span><span class="summary-unit">km（不含阿的山路）</span></div>
+      <div style="font-size:0.72rem;color:rgba(255,255,255,0.4);margin-top:0.3rem;">停車 ¥1,040 + 過路費 ¥1,500</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-day">DAY 4</div>
+      <div class="summary-route">室堂（立山）→ 富山</div>
+      <div><span class="summary-time">65</span><span class="summary-unit">km</span></div>
+      <div style="font-size:0.72rem;color:rgba(255,255,255,0.4);margin-top:0.3rem;">過路費 ¥1,200</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-day">DAY 5</div>
+      <div class="summary-route">富山 → 白川鄉 → 金澤</div>
+      <div><span class="summary-time">156</span><span class="summary-unit">km</span></div>
+      <div style="font-size:0.72rem;color:rgba(255,255,255,0.4);margin-top:0.3rem;">停車 ¥1,200 + 過路費 ¥3,500</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-day">DAY 6</div>
+      <div class="summary-route">金澤 → 名古屋機場</div>
+      <div><span class="summary-time">300</span><span class="summary-unit">km</span></div>
+      <div style="font-size:0.72rem;color:rgba(255,255,255,0.4);margin-top:0.3rem;">過路費 ¥9,000（2台）</div>
+    </div>
+  </div>
+  <div style="margin-top:1.5rem;font-size:0.8rem;color:rgba(255,255,255,0.5);line-height:1.8;">
+    📌 過路費合計（估算）：約 ¥23,000–25,000（2台來回）<br>
+    📌 停車費合計（估算）：約 ¥3,500–5,000（景點停車場）<br>
+    📌 建議使用「ETC PASS」或「外國人限定高速公路吃到飽」（如適用），可省下大筆過路費。<br>
+    ⚠️ 以上車程為正常情況估計，旺季（5月黃金週、10月紅葉季）等車時間可能增加 30–60 分鐘。
+  </div>
+</div>
+
+</div><!-- end .main -->
+
+<script>
+// Map tile layer (OpenStreetMap)
+const TILE = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+const ATTR = '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+
+function makeIcon(color, label) {
+  return L.divIcon({
+    className: '',
+    html: `<div style="background:${color};color:white;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.35);font-family:sans-serif;">${label}</div>`,
+    iconSize:[28,28], iconAnchor:[14,14], popupAnchor:[0,-14]
+  });
+}
+
+// ===== DAY 1 MAP =====
+(function(){
+  const map = L.map('map1', {scrollWheelZoom:false, zoomControl:true});
+  L.tileLayer(TILE, {attribution:ATTR, maxZoom:13}).addTo(map);
+
+  const points = [
+    {lat:34.8583, lng:136.8050, label:'✈', color:'#c49a2e', name:'名古屋中部國際機場（Centrair）', desc:'出發點・取車地點'},
+    {lat:36.2381, lng:137.9721, label:'P', color:'#2d6080', name:'松本市（夜宿）', desc:'松本城下町，溫泉旅館'},
+  ];
+  points.forEach(p => {
+    L.marker([p.lat, p.lng], {icon: makeIcon(p.color, p.label)})
+      .addTo(map).bindPopup(`<b>${p.name}</b><br><small>${p.desc}</small>`);
+  });
+  // Route line
+  L.polyline([[34.8583,136.8050],[35.2,137.0],[35.6,137.4],[36.2381,137.9721]], {color:'#2d6080', weight:3, dashArray:'6,4', opacity:0.7}).addTo(map);
+  map.fitBounds([[34.5,136.5],[36.5,138.3]], {padding:[20,20]});
+})();
+
+// ===== DAY 2 MAP =====
+(function(){
+  const map = L.map('map2', {scrollWheelZoom:false});
+  L.tileLayer(TILE, {attribution:ATTR, maxZoom:13}).addTo(map);
+
+  const points = [
+    {lat:36.2381, lng:137.9721, label:'H', color:'#5a8f6a', name:'松本市（出發・返宿）', desc:'夜宿松本市'},
+    {lat:36.2387, lng:137.6344, label:'P', color:'#7a7570', name:'新島島停車場', desc:'自駕終點・停車換搭巴士'},
+    {lat:36.2523, lng:137.5797, label:'🌊', color:'#1a5c85', name:'大正池', desc:'倒映穗高連峰・晨霧必訪'},
+    {lat:36.2483, lng:137.6244, label:'🌉', color:'#c49a2e', name:'河童橋', desc:'上高地地標・穗高連峰展望'},
+  ];
+  points.forEach(p => {
+    L.marker([p.lat, p.lng], {icon: makeIcon(p.color, p.label)})
+      .addTo(map).bindPopup(`<b>${p.name}</b><br><small>${p.desc}</small>`);
+  });
+  L.polyline([[36.2381,137.9721],[36.2387,137.6344]], {color:'#2d6080', weight:3, dashArray:'6,4', opacity:0.7}).addTo(map);
+  L.polyline([[36.2387,137.6344],[36.2523,137.5797],[36.2483,137.6244]], {color:'#5a8f6a', weight:2, dashArray:'4,3', opacity:0.7}).addTo(map);
+  map.fitBounds([[36.20,137.50],[36.30,138.05]], {padding:[20,20]});
+})();
+
+// ===== DAY 3 MAP =====
+(function(){
+  const map = L.map('map3', {scrollWheelZoom:false});
+  L.tileLayer(TILE, {attribution:ATTR, maxZoom:13}).addTo(map);
+
+  const points = [
+    {lat:36.2381, lng:137.9721, label:'1', color:'#5a8f6a', name:'松本市', desc:'出發地'},
+    {lat:36.5127, lng:137.8441, label:'2', color:'#7a7570', name:'信濃大町', desc:'中途城鎮'},
+    {lat:36.5633, lng:137.6564, label:'P', color:'#7a7570', name:'扇澤停車場', desc:'自駕終點・換乘阿爾卑斯路線'},
+    {lat:36.5681, lng:137.6678, label:'🌊', color:'#1a5c85', name:'黑部水庫', desc:'日本最高拱形水壩 186m'},
+    {lat:36.5831, lng:137.6214, label:'🚡', color:'#c49a2e', name:'大觀峰', desc:'立山空中纜車展望站'},
+    {lat:36.5823, lng:137.5927, label:'🏔', color:'#c0392b', name:'室堂平 2,450m', desc:'立山山麓・住宿地'},
+  ];
+  points.forEach(p => {
+    L.marker([p.lat, p.lng], {icon: makeIcon(p.color, p.label)})
+      .addTo(map).bindPopup(`<b>${p.name}</b><br><small>${p.desc}</small>`);
+  });
+  L.polyline([[36.2381,137.9721],[36.5127,137.8441],[36.5633,137.6564]], {color:'#2d6080', weight:3, dashArray:'6,4', opacity:0.7}).addTo(map);
+  L.polyline([[36.5633,137.6564],[36.5681,137.6678],[36.5831,137.6214],[36.5823,137.5927]], {color:'#c49a2e', weight:2, dashArray:'3,3', opacity:0.8}).addTo(map);
+  map.fitBounds([[36.15,137.50],[36.65,138.10]], {padding:[20,20]});
+})();
+
+// ===== DAY 4 MAP =====
+(function(){
+  const map = L.map('map4', {scrollWheelZoom:false});
+  L.tileLayer(TILE, {attribution:ATTR, maxZoom:13}).addTo(map);
+
+  const points = [
+    {lat:36.5823, lng:137.5927, label:'⛄', color:'#1a5c85', name:'室堂平（雪之大谷）', desc:'早晨參觀雪之大谷步道'},
+    {lat:36.5581, lng:137.5328, label:'🚡', color:'#7a7570', name:'美女平', desc:'立山登山纜車下站'},
+    {lat:36.5533, lng:137.5244, label:'🚗', color:'#5a8f6a', name:'立山站', desc:'取回自駕車'},
+    {lat:36.6953, lng:137.2136, label:'🌊', color:'#c49a2e', name:'雨晴海岸', desc:'立山連峰×富山灣絕景'},
+    {lat:36.6953, lng:137.2136, label:'🌊', color:'#c49a2e', name:'雨晴海岸', desc:'立山連峰×富山灣絕景'},
+    {lat:36.6953, lng:137.2136, label:'🌊', color:'#c49a2e', name:'雨晴海岸（雨晴）', desc:'途中停車點・免費'},
+    {lat:36.6916, lng:137.2119, label:'H', color:'#c0392b', name:'富山市（夜宿）', desc:'富山灣海鮮晚餐'},
+  ];
+  // deduplicate
+  const uniq = [
+    {lat:36.5823, lng:137.5927, label:'⛄', color:'#1a5c85', name:'室堂平（雪之大谷）', desc:'早晨參觀雪之大谷步道'},
+    {lat:36.5581, lng:137.5328, label:'🚡', color:'#7a7570', name:'美女平', desc:'立山登山纜車下站'},
+    {lat:36.5533, lng:137.5244, label:'🚗', color:'#5a8f6a', name:'立山站', desc:'取回自駕車'},
+    {lat:36.7293, lng:136.9703, label:'🌊', color:'#c49a2e', name:'雨晴海岸', desc:'途中免費停車景點'},
+    {lat:36.6916, lng:137.2119, label:'H', color:'#c0392b', name:'富山市（夜宿）', desc:'富山灣海鮮晚餐'},
+  ];
+  uniq.forEach(p => {
+    L.marker([p.lat, p.lng], {icon: makeIcon(p.color, p.label)})
+      .addTo(map).bindPopup(`<b>${p.name}</b><br><small>${p.desc}</small>`);
+  });
+  L.polyline([[36.5823,137.5927],[36.5581,137.5328],[36.5533,137.5244],[36.7293,136.9703],[36.6916,137.2119]], {color:'#2d6080', weight:3, dashArray:'6,4', opacity:0.7}).addTo(map);
+  map.fitBounds([[36.50,136.85],[36.75,137.65]], {padding:[20,20]});
+})();
+
+// ===== DAY 5 MAP =====
+(function(){
+  const map = L.map('map5', {scrollWheelZoom:false});
+  L.tileLayer(TILE, {attribution:ATTR, maxZoom:13}).addTo(map);
+
+  const points = [
+    {lat:36.6916, lng:137.2119, label:'1', color:'#5a8f6a', name:'富山市（出發）', desc:''},
+    {lat:36.2559, lng:136.9059, label:'🏘', color:'#c49a2e', name:'白川鄉合掌村', desc:'UNESCO世界文化遺產'},
+    {lat:36.5611, lng:136.6562, label:'H', color:'#c0392b', name:'金澤市（夜宿）', desc:'兼六園・近江町市場'},
+  ];
+  points.forEach(p => {
+    L.marker([p.lat, p.lng], {icon: makeIcon(p.color, p.label)})
+      .addTo(map).bindPopup(`<b>${p.name}</b><br><small>${p.desc}</small>`);
+  });
+  L.polyline([[36.6916,137.2119],[36.2559,136.9059],[36.5611,136.6562]], {color:'#2d6080', weight:3, dashArray:'6,4', opacity:0.7}).addTo(map);
+  map.fitBounds([[36.15,136.55],[36.80,137.35]], {padding:[20,20]});
+})();
+
+// ===== DAY 6 MAP =====
+(function(){
+  const map = L.map('map6', {scrollWheelZoom:false});
+  L.tileLayer(TILE, {attribution:ATTR, maxZoom:13}).addTo(map);
+
+  const points = [
+    {lat:36.5611, lng:136.6562, label:'🌿', color:'#5a8f6a', name:'金澤・兼六園', desc:'晨間散步・三名園之一'},
+    {lat:36.5683, lng:136.6432, label:'🛍', color:'#c49a2e', name:'近江町市場', desc:'伴手禮採購'},
+    {lat:36.5814, lng:136.6256, label:'🏯', color:'#7a7570', name:'金澤城公園', desc:'玉泉院丸庭園'},
+    {lat:34.8583, lng:136.8050, label:'✈', color:'#c0392b', name:'名古屋中部國際機場', desc:'還車・搭機返台'},
+  ];
+  points.forEach(p => {
+    L.marker([p.lat, p.lng], {icon: makeIcon(p.color, p.label)})
+      .addTo(map).bindPopup(`<b>${p.name}</b><br><small>${p.desc}</small>`);
+  });
+  L.polyline([[36.5611,136.6562],[36.5683,136.6432],[36.5814,136.6256]], {color:'#5a8f6a', weight:2, dashArray:'4,3', opacity:0.7}).addTo(map);
+  L.polyline([[36.5814,136.6256],[35.5,136.7],[34.8583,136.8050]], {color:'#c0392b', weight:3, dashArray:'6,4', opacity:0.7}).addTo(map);
+  map.fitBounds([[34.6,136.3],[36.75,137.0]], {padding:[20,20]});
+})();
+</script>
+
+</body>
+</html>
